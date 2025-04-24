@@ -18,7 +18,12 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav mr-auto">
             <li class="nav-item">
-              <router-link to="/" class="nav-link">Home</router-link>
+              <router-link to="/" class="nav-link">Inicio</router-link>
+            </li>
+          </ul>
+          <ul v-if="isAuthenticated" class="navbar-nav mr-auto">
+            <li class="nav-item">
+              <router-link to="/analisis" class="nav-link">Analisis</router-link>
             </li>
           </ul>
           <ul class="navbar-nav d-none d-md-block">
@@ -27,7 +32,7 @@
                 id="qsLoginBtn"
                 class="btn btn-primary btn-margin"
                 @click.prevent="login"
-              >Login</button>
+              >Iniciar Sesión</button>
             </li>
 
             <li class="nav-item dropdown" v-if="isAuthenticated">
@@ -47,10 +52,10 @@
               <div class="dropdown-menu dropdown-menu-right">
                 <div class="dropdown-header">{{ user.name }}</div>
                 <router-link to="/profile" class="dropdown-item dropdown-profile">
-                  <font-awesome-icon class="mr-3" icon="user" />Profile
+                  <font-awesome-icon class="mr-3" icon="user" />Perfil
                 </router-link>
                 <a id="qsLogoutBtn" href="#" class="dropdown-item" @click.prevent="logout">
-                  <font-awesome-icon class="mr-3" icon="power-off" />Log out
+                  <font-awesome-icon class="mr-3" icon="power-off" />Cerrar Sesión
                 </a>
               </div>
             </li>
