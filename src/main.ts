@@ -20,7 +20,7 @@ const app = createApp(App);
 library.add(faLink, faUser, faPowerOff);
 
 app
-  .use(vuetify) // 👈 Aquí usas Vuetify
+  .use(vuetify)
   .use(hljsVuePlugin)
   .use(createRouter(app))
   .use(
@@ -29,7 +29,9 @@ app
       clientId: authConfig.clientId,
       authorizationParams: {
         redirect_uri: window.location.origin,
+        audience: authConfig.audience, 
       },
+      
     })
   )
   .component("font-awesome-icon", FontAwesomeIcon)

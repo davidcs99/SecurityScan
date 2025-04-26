@@ -290,9 +290,9 @@
   </v-app>
 </template>
 
-
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useAuth0 } from '@auth0/auth0-vue';
 
 const tab = ref('file');
 const file = ref(null);
@@ -303,6 +303,48 @@ const scanComplete = ref(false);
 const threatLevel = ref(0);
 const fileInput = ref(null);
 const isDragging = ref(false);
+
+const { getAccessTokenSilently, isAuthenticated } = useAuth0();
+
+const userRoles = ref([]);
+
+onMounted(async () => {
+  if (isAuthenticated.value) {
+    try {
+      const { id_token } = await getAccessTokenSilently({ detailedResponse: true });
+      console.log("ID Token:", id_token); // Aquí tienes tu ID token
+
+      // Decodificar el token para obtener los roles
+      const tokenPayload = parseJwt(id_token);
+      console.log("Token decodificado:", tokenPayload);
+
+      // Extraer roles - ajusta la ruta según la estructura de tu token
+      // Generalmente Auth0 almacena roles en una propiedad como 'roles' o 'https://tu-dominio/roles'
+      userRoles.value = tokenPayload.roles ||
+                        tokenPayload['https://dev-mk00wdmgz5nn6d2c.us.auth0.com/roles'] ||
+                        [];
+
+      console.log("Roles del usuario:", userRoles.value);
+    } catch (err) {
+      console.error("Error al obtener el ID token:", err);
+    }
+  }
+});
+
+// Función para decodificar JWT sin dependencias externas
+const parseJwt = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map((c) => {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    console.error("Error al decodificar el token:", e);
+    return {};
+  }
+};
 
 const features = [
   { icon: 'mdi-shield-search', text: 'Algoritmos avanzados de detección de amenazas' },
@@ -351,13 +393,45 @@ const formatFileSize = (bytes) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
-const startScan = () => {
+const readFileAsBytes = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      const arrayBuffer = event.target.result;
+      const uint8Array = new Uint8Array(arrayBuffer);
+      resolve(uint8Array);
+    };
+
+    reader.onerror = (error) => {
+      reject(error);
+    };
+
+    reader.readAsArrayBuffer(file);
+  });
+};
+
+const startScan = async () => {
   isScanning.value = true;
-  setTimeout(() => {
+
+  try {
+    let fileBytes = null;
+
+    if (tab.value === 'file' && file.value) {
+      fileBytes = await readFileAsBytes(file.value);
+      console.log('Contenido del archivo en bytes:', fileBytes);
+    }
+
+    // Simulación de escaneo
+    setTimeout(() => {
+      isScanning.value = false;
+      scanComplete.value = true;
+      threatLevel.value = Math.floor(Math.random() * 3);
+    }, 2000);
+  } catch (error) {
+    console.error('Error leyendo el archivo:', error);
     isScanning.value = false;
-    scanComplete.value = true;
-    threatLevel.value = Math.floor(Math.random() * 3);
-  }, 2000);
+  }
 };
 
 const resetScan = () => {
